@@ -1,21 +1,36 @@
 {
-  "comp": "yaok",
+  "comp": "voch",
   "table_link": "https://cloud.mail.ru/public/z595/y83CuAjP2",
-  "table_name": "01 Шаблон_Оценочные листы _Москва, как много в этом звуке... (1).xlsx",
+  "table_name": "Призеры _В ожидании чуда_ 2022-2023.xlsx",
   "table": {
     "yaok": {
-      "cats": 2,
+      "cats": 8,
       "cols": {
         "num": 0,
-        "form": 2,
-        "school": 3,
+        "form": 3,
+        "school": 4,
         "group": 5,
         "tutor": 6,
         "count": 8,
         "participant": 9,
-        "title": 17,
-        "result": 63
+        "nomination": 11,
+        "title": 16,
+        "result": 20
       }
+    },
+    "voch": {
+      "cats": 10,
+      "cols": {
+        "num": 0,
+        "form": 3,
+        "school": 4,
+        "group": 5,
+        "tutor": 6,
+        "count": 8,
+        "participant": 9,
+        "nomination": 11,
+        "title": 16,
+        "result": 38
     }
   }
 }
