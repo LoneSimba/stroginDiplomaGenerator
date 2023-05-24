@@ -1,7 +1,7 @@
 {
-  "comp": "voch",
+  "comp": "mdt",
   "table_link": "https://cloud.mail.ru/public/z595/y83CuAjP2",
-  "table_name": "Призеры _В ожидании чуда_ 2022-2023.xlsx",
+  "table_name": "Оценочные листы _Мир дому твоему_ 2022-2023.xlsx",
   "table": {
     "yaok": {
       "cats": 8,
@@ -30,7 +30,24 @@
         "participant": 9,
         "nomination": 11,
         "title": 16,
-        "result": 38
+        "result": 37
+      }
+    },
+    "mdt": {
+      "cats": 6,
+      "cols": {
+        "num": 0,
+        "form": 3,
+        "school": 4,
+        "group": 5,
+        "tutor": 6,
+        "count": 8,
+        "participant": 9,
+        "nomination": 12,
+        "title": 16,
+        "result": 21,
+        "reason": 22
+      }
     }
   }
 }

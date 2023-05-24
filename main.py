@@ -38,8 +38,8 @@ def main():
 
     for i in range(0, table_conf.get('cats')):
         ws: Worksheet = table.worksheets[i]
-        if not re.findall(r'\d\s', str(ws.title)):
-            continue
+        # if not re.findall(r'\d\s', str(ws.title)):
+        #     continue
 
         title: str = re.sub(r'\d\s', '', str(ws.title))
         print('[' + str(i+1) + '/' + str(table_conf.get('cats')) + '] Processing nomination: ' + title)
@@ -56,48 +56,52 @@ def main():
             values: list = [row[v] for k, v in table_conf.get('cols').items()]
             entry: dict = dict(zip(table_conf.get('cols').keys(), values))
 
-            # if any(res in entry.get('result') for res in ['Лауреат III степени']):
-            if True:
+            # if any(res in entry.get('result') for res in ['Специальный приз', 'Лауреат I степени', 'Гран-при']):
+            if any(res in entry.get('result') for res in ['Лауреат II', 'Дипломант', 'Участник']):
 
-                # if 'Гран-при' in entry.get('result'):
-                #     continue
-                # if 'Специальный' in entry.get('result'):
-                #     continue
-                # if 'аннулирован' in entry.get('result'):
-                #     continue
-
-                if entry.get('count') < 1:
-                    continue
-
-                nomination = entry.get('nomination').replace('"', '')
-                title = re.sub(r'^\"|\"$', '', entry.get("title"))
-                entry.update({'nomination': nomination, "title": title})
+                # clean garbage from names
+                participant = re.sub(r'\"|\'|\«|\»', '', str(entry.get('participant')))
+                tutor = re.sub(r'\"|\'|\«|\»', '', str(entry.get('tutor')))
+                entry.update({'tutor': tutor, 'participant': participant})
 
                 count: int = int(re.findall(r'\d+', str(entry.get('count')))[0])
+                if count < 1:
+                    continue
+
+                nomination = re.sub(r'\"|\«|\»', '', entry.get('nomination'))
+                title = re.sub(r'^\"|\"$|\"\.$|^\«|\»$|\».$|^\'|\'$|\'.$', '', str(entry.get("title")))
+                entry.update({'nomination': nomination, "title": title})
+
                 is_group: bool = count > 1
                 is_individual: bool = 'Самостоятельный участник' in (entry.get('form') or '')
                 is_prized: bool = any(x in entry.get('result') for x in ['Дипломант', 'Лауреат', 'Гран-при', 'Специальный'])
-                is_sp: bool = any(x in entry.get('result') for x in ['Гран-при', 'Специальный'])
+                is_sp: bool = 'Специальный приз' in entry.get('result')
                 is_gp: bool = 'Гран-при' in entry.get('result')
 
                 output_path: str = os.path.join(
-                    os.getcwd(), "output", comp, nomination,
+                    # os.getcwd(), "output", comp, str(ws.title),
+                    os.getcwd(), "output", comp,
                     str((entry.get('tutor'), '')[is_individual]).strip()
                 )
 
                 in_filename: str = "шаблон_"
                 in_filename += ("благодарность", "диплом")[is_prized]
-                in_filename += ("_участник", "_участник_группа")[is_group and not is_individual]
-                in_filename += ("", "_инд")[is_individual]
-                if is_prized:
-                    in_filename += ("", "_сп")[is_sp]
 
+                if is_sp:
+                    in_filename += "_спец"
+                elif is_gp:
+                    in_filename += "_гранпри"
+                else:
+                    in_filename += "_участник"
+
+                in_filename += ("", "_группа")[is_group and not is_individual]
+                in_filename += ("", "_инд")[is_individual]
                 in_filename += ".docx"
 
                 if not is_individual:
                     tutor_ent: dict = {'tutor': entry.get('tutor') or '', 'group': str(entry.get('group')) or '',
                                        'school': str(entry.get('school')) or ''}
-                    create_tutor_dipl(tutor_ent, ingest_path, output_path, is_gp)
+                    create_tutor_dipl(tutor_ent, ingest_path, output_path, is_gp, is_sp)
 
                 # if not is_group:
                 create_diploma(entry, os.path.join(ingest_path, in_filename), output_path, is_prized)
@@ -146,25 +150,35 @@ def create_diploma(entry: dict, ingest_path: str, output_path: str, is_prized: b
         for run in par.runs:
             text = str(run.text).replace('%', '')
             if text in keys:
-                run.text = str(entry.get(text)) or ''
+                run.text = str(entry.get(text)).replace('None', '') or ''
 
     os.makedirs(output_path, exist_ok=True)
     temp.save(out_filename)
 
 
-def create_tutor_dipl(entry: dict, ingest_path: str, output_path: str, is_gp: bool):
+def create_tutor_dipl(entry: dict, ingest_path: str, output_path: str, is_gp: bool, is_sp: bool):
     out_filename: str = "благодарность"
     out_filename += re.sub(r'["\'\\/?%*:|<>\n]', '',
-                           (" " + str(entry.get('tutor')) + " " + entry.get('group') + " " + entry.get('school') + ".docx"))
+                           (" " + str(entry.get('tutor')) + " " + entry.get('group') + " " + entry.get('school')))
+    out_filename += ("", " гран при")[is_gp]
+    out_filename += ("", " спец приз")[is_sp]
+    out_filename += ".docx"
     output_path = unicodedata.normalize('NFKD', output_path)
     out_filename = unicodedata.normalize('NFKD', os.path.join(output_path, out_filename))
 
     if os.path.isfile(out_filename):
         return
 
-    temp_name: str = "шаблон_благодарность_педагог"
-    temp_name += ("", "_гп")[is_gp]
-    temp_name += ".docx"
+    temp_name: str = "шаблон_благодарность"
+
+    if is_sp:
+        temp_name += "_спец"
+    elif is_gp:
+        temp_name += "_гранпри"
+    else:
+        temp_name += "_участник"
+
+    temp_name += "_педагог.docx"
     temp: Document = D(os.path.join(ingest_path, temp_name))
     keys: list = list(entry.keys())
     table: Table = temp.tables[0]
@@ -173,7 +187,7 @@ def create_tutor_dipl(entry: dict, ingest_path: str, output_path: str, is_gp: bo
         for r in p.runs:
             text = str(r.text).replace('%', '')
             if text in keys:
-                r.text = entry.get(text) or ''
+                r.text = str(entry.get(text)).replace('None', '') or ''
     os.makedirs(output_path, exist_ok=True)
     temp.save(os.path.join(output_path, out_filename))
 
@@ -197,12 +211,12 @@ def load_config() -> dict:
 
 
 if __name__ == '__main__':
-    try:
+    # try:
         main()
         print("Done")
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        f = exc_tb.tb_frame
-        file = f.f_code.co_filename
-
-        print("Fatal error: " + str(e) + " in " + file + " at " + str(exc_tb.tb_lineno))
+    # except Exception as e:
+    #     exc_type, exc_obj, exc_tb = sys.exc_info()
+    #     f = exc_tb.tb_frame
+    #     file = f.f_code.co_filename
+    #
+    #     print("Fatal error: " + str(e) + " in " + file + " at " + str(exc_tb.tb_lineno))
