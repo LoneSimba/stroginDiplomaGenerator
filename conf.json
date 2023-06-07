@@ -1,7 +1,7 @@
 {
-  "comp": "mdt",
+  "comp": "ds",
   "table_link": "https://cloud.mail.ru/public/z595/y83CuAjP2",
-  "table_name": "Оценочные листы _Мир дому твоему_ 2022-2023.xlsx",
+  "table_name": "Копия Оценочные листы _День Семьи_ 2022-2023.xlsx",
   "table": {
     "yaok": {
       "cats": 8,
@@ -47,6 +47,22 @@
         "title": 16,
         "result": 21,
         "reason": 22
+      }
+    },
+    "ds": {
+      "cats": 5,
+      "cols": {
+        "num": 0,
+        "form": 3,
+        "school": 4,
+        "group": 5,
+        "tutor": 6,
+        "count": 7,
+        "participant": 8,
+        "nomination": 9,
+        "title": 13,
+        "result": 19,
+        "reason": 20
       }
     }
   }
